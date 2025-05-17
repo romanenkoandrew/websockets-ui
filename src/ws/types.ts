@@ -1,11 +1,11 @@
-export type Message =
-  | { type: 'reg'; data: string, id: number }
-  | { type: 'echo'; data: string };
+export type Message = 'reg' | 'update_winners' | 'unknown'
+
+export type IncomingMessage = { type: Message; data: string, id: number }
 
 export type RegData = { name: string; password: string }
 
 export type MessageResponse = {
-  type: string;
+  type: Message;
   data: string;
   id: number
 };
