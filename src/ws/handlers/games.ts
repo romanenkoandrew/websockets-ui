@@ -1,6 +1,6 @@
 import { createGame, getGameById, isGameReady, savePlayerShips, Ship } from "../../db/games"
 import { getRoomUsers, isRoomReadyToStart, removeRoom, Room } from "../../db/rooms"
-import { broadcastToGamePlayers } from "../broadcast"
+import { broadcastToGamePlayers, sendToPlayers } from "../broadcast"
 import { Result } from "../types"
 import { mapToResponse } from "../utils"
 
@@ -18,14 +18,7 @@ export const createGameHandler = (room: Room) => {
   
     const game = createGame(roomUsers)
         
-    const { idGame, players: [firstPlayer, secondPlayer] } = game
-    const firstPlayerMessage = mapToResponse('create_game', JSON.stringify({ idGame, idPlayer: firstPlayer.idPlayer }))
-    const secondPlayerMessage = mapToResponse('create_game', JSON.stringify({ idGame, idPlayer: secondPlayer.idPlayer }))
-
-    broadcastToGamePlayers(idGame, {
-        [firstPlayer.idPlayer]: firstPlayerMessage,
-        [secondPlayer.idPlayer]: secondPlayerMessage
-    })
+    sendToPlayers(game.idGame, game.players, 'create_game')
     removeRoom(room.roomId)
 }
 
@@ -33,14 +26,7 @@ export const createGameHandler = (room: Room) => {
 const startGame = (gameId: string) => {
     const game = getGameById(gameId)
     if (game) {
-        const { idGame, players: [firstPlayer, secondPlayer] } = game
-        const firstPlayerMessage = mapToResponse('start_game', JSON.stringify({ idGame, idPlayer: firstPlayer.idPlayer, ships: firstPlayer.ships }))
-        const secondPlayerMessage = mapToResponse('start_game', JSON.stringify({ idGame, idPlayer: secondPlayer.idPlayer, ships: secondPlayer.ships }))
-        
-        broadcastToGamePlayers(idGame, {
-            [firstPlayer.idPlayer]: firstPlayerMessage,
-            [secondPlayer.idPlayer]: secondPlayerMessage
-        })
+        sendToPlayers(game.idGame, game.players, 'start_game', player => ({ ships: player.ships }))
     }
 }
 
