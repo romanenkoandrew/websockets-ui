@@ -3,6 +3,7 @@ import { getRooms, createRoom, addUserToRoom, getRoomById, Room } from "../../db
 import { mapToResponse } from "../utils"
 import { getUserBySocket } from '../../db/users'
 import { Result } from '../types'
+import { broadcastToAllUsers } from '../broadcast'
 
 const sucess: Result = { error: false, errorMessage: '' }
 
@@ -21,7 +22,7 @@ export const createRoomHandler = (socket: WebSocket): Result => {
     if (!room) return { error: true, errorMessage: 'The user is already in the room' }
     
     addUserToRoom(room.roomId, user)
-
+    broadcastToAllUsers(getRoomsHandler(), socket)
     return sucess
 }
 
@@ -43,6 +44,6 @@ export const addUserToRoomHandler = (socket: WebSocket, roomId: string): Result 
     }
 
     addUserToRoom(room.roomId, currentUser)
-
+    broadcastToAllUsers(getRoomsHandler(), socket)
     return sucess
 }

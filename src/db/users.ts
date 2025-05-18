@@ -23,7 +23,7 @@ export const loginByCredentials = (
   name: string,
   password: string
 ): UserResponse => {
-  if (getOnlineUsers().some(user => user.name === name))
+  if (getOnlineUsers().users().some(user => user.name === name))
     return createErrorResponse('User already in use')
 
   const user = users.get(name)
@@ -49,9 +49,11 @@ export const getUserBySocket = (socket: WebSocket) => {
   return onlineUserBySocket.get(socket)
 }
 
-export const getOnlineUsers = () => {
-  return [...onlineUserBySocket.values()]
-}
+export const getOnlineUsers = () => ({
+  users: () => [...onlineUserBySocket.values()],
+  sockets: () => [...onlineUserBySocket.keys()],
+  all: () => [...onlineUserBySocket.entries()],
+})
 
 const bindUserToSocket = (socket: WebSocket, user: RegisteredUser): void => {
   onlineUserBySocket.set(socket, { name: user.name, index: user.index })
