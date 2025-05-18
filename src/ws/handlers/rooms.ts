@@ -1,9 +1,10 @@
 import { WebSocket } from 'ws'
 import { getRooms, createRoom, addUserToRoom, getRoomById, Room } from "../../db/rooms"
 import { mapToResponse } from "../utils"
-import { getUserBySocket } from '../../db/users'
+import { getUserBySocket, User } from '../../db/users'
 import { Result } from '../types'
 import { broadcastToAllUsers } from '../broadcast'
+import { createGameHandler } from './games'
 
 const sucess: Result = { error: false, errorMessage: '' }
 
@@ -27,23 +28,35 @@ export const createRoomHandler = (socket: WebSocket): Result => {
 }
 
 export const addUserToRoomHandler = (socket: WebSocket, roomId: string): Result => {
-    const room = getRoomById(roomId)
+    const validationResult = validateAddUserToRoom(socket, roomId)
+    if (validationResult.error) return validationResult
 
-    if (!room) {
-        return { error: true, errorMessage: 'The Room does not exist' }
-    }
+    const { room, user } = validationResult
 
-    const currentUser = getUserBySocket(socket)
+    addUserToRoom(room.roomId, user)
+    createGameHandler(room)
 
-    if (!currentUser) {
-        return { error: true, errorMessage: 'User does not exist' }
-    }
-
-    if (room.roomUsers.find(user => user.index === currentUser.index)) {
-        return { error: true, errorMessage: 'The user is already in the room' }
-    }
-
-    addUserToRoom(room.roomId, currentUser)
     broadcastToAllUsers(getRoomsHandler(), socket)
     return sucess
 }
+
+type AddUserValidationResult =
+  | { error: false; room: Room; user: User; errorMessage: string }
+  | { error: true; errorMessage: string }
+
+const validateAddUserToRoom = (
+    socket: WebSocket,
+    roomId: string
+  ): AddUserValidationResult => {
+    const room = getRoomById(roomId)
+    if (!room) return { error: true, errorMessage: 'The Room does not exist' }
+  
+    const user = getUserBySocket(socket)
+    if (!user) return { error: true, errorMessage: 'User does not exist' }
+  
+    if (room.roomUsers.some(u => u.index === user.index)) {
+      return { error: true, errorMessage: 'The user is already in the room' }
+    }
+  
+    return { ...sucess, room, user }
+  }

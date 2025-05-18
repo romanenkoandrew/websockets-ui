@@ -1,6 +1,8 @@
 import { User } from "./users"
 import crypto from 'node:crypto'
 
+const maxParticipantsCount = 2
+
 export type Room = {
     roomId: string
     roomUsers: User[]
@@ -34,10 +36,34 @@ export const addUserToRoom = (roomId: string, user: User): boolean => {
 
     if (!room) return false
 
-    // const alreadyInRoom = room.roomUsers.some((u) => u.index === user.index)
     const alreadyInRoom = getRooms().find(room => room.roomUsers.some(it => it.index === user.index))
     if (alreadyInRoom) return false
 
     room.roomUsers.push(user)
     return true
+}
+
+export const getRoomParticipants = (roomId: string) => {
+    const room = getRoomById(roomId)
+
+    if (!room) return false
+
+    return room.roomUsers
+}
+
+export const removeRoom = (roomId: string) => {
+    const room = getRoomById(roomId)
+
+    if (!room) return false
+
+    rooms.delete(roomId)
+}
+export const isRoomReadyToStart = (roomId: string): boolean => {
+    const room = getRoomById(roomId)
+    return !!room && room.roomUsers.length === maxParticipantsCount
+  }
+  
+export const getRoomUsers = (roomId: string): User[] | null => {
+    const room = getRoomById(roomId)
+    return room ? room.roomUsers : null
 }

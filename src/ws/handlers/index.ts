@@ -44,7 +44,7 @@ export const handleMessage = (ws: WebSocket, msg: IncomingMessage): MessageRespo
                 } else {
                     responses.push(getRoomsHandler())
                 }
-                
+
                 return responses
             }
             default:

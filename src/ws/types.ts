@@ -1,5 +1,6 @@
 type RoomMessages = 'update_room' | 'create_room' | 'add_user_to_room'
-export type Message = 'reg' | 'update_winners' | 'unknown' | 'error' | RoomMessages
+type GameMessages = 'create_game'
+export type Message = 'reg' | 'update_winners' | 'unknown' | 'error' | RoomMessages | GameMessages
 
 export type IncomingMessage = { type: Message; data: string, id: number }
 

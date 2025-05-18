@@ -16,7 +16,8 @@ export type User = Omit<RegisteredUser, 'password'>
 type UserResponse = User & Result
 
 const users = new Map<string, RegisteredUser>()
-const onlineUserBySocket = new Map<WebSocket, User>()
+const userConnections = new Map<WebSocket, User>()
+const userConnectionsById = new Map<string, WebSocket>()
 
 export const loginByCredentials = (
   socket: WebSocket,
@@ -38,25 +39,33 @@ export const loginByCredentials = (
 }
 
 export const logout = (socket: WebSocket): void => {
-  const user = onlineUserBySocket.get(socket)
+  const user = userConnections.get(socket)
 
   if (user) {
-    onlineUserBySocket.delete(socket)
+    userConnectionsById.delete(user.index)
   }
+  userConnections.delete(socket)
 }
 
 export const getUserBySocket = (socket: WebSocket) => {
-  return onlineUserBySocket.get(socket)
+  return userConnections.get(socket)
 }
 
+export const getSocketByUser = (userId?: User['index']) => {
+  if (!userId) return
+  return userConnectionsById.get(userId)
+}
+
+
 export const getOnlineUsers = () => ({
-  users: () => [...onlineUserBySocket.values()],
-  sockets: () => [...onlineUserBySocket.keys()],
-  all: () => [...onlineUserBySocket.entries()],
+  users: () => [...userConnections.values()],
+  sockets: () => [...userConnections.keys()],
+  all: () => [...userConnections.entries()],
 })
 
 const bindUserToSocket = (socket: WebSocket, user: RegisteredUser): void => {
-  onlineUserBySocket.set(socket, { name: user.name, index: user.index })
+  userConnections.set(socket, { name: user.name, index: user.index })
+  userConnectionsById.set(user.index, socket)
 }
 
 const registerUser = (name: string, password: string): RegisteredUser => {
