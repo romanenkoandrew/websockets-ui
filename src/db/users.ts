@@ -1,25 +1,27 @@
-import { WebSocket } from 'ws';
-import crypto from 'node:crypto';
+import { WebSocket } from 'ws'
+import crypto from 'node:crypto'
 
-type User = {
-  name: string;
-  password: string;
-};
+type UserError = {
+  error: boolean
+  errorMessage: string
+}
 
-type RegisteredUser = User & {
-  index: string;
-};
+type UserCredentials = {
+  name: string
+  password: string
+}
 
-type UserResponse = {
-  name: string;
-  index: string;
-  error: boolean;
-  errorMessage: string;
-};
+type RegisteredUser = UserCredentials & {
+  index: string
+}
 
-const users = new Map<string, RegisteredUser>();
-const userBySocket = new Map<WebSocket, RegisteredUser>();
-const onlineUsers = new Set<string>();
+type User = Omit<RegisteredUser, 'password'>
+
+type UserResponse = User & UserError
+
+const users = new Map<string, RegisteredUser>()
+const userBySocket = new Map<WebSocket, User>()
+const onlineUsers = new Set<string>()
 
 export const loginByCredentials = (
   socket: WebSocket,
@@ -27,60 +29,60 @@ export const loginByCredentials = (
   password: string
 ): UserResponse => {
   if (onlineUsers.has(name)) {
-    return createErrorResponse('User already in use');
+    return createErrorResponse('User already in use')
   }
 
-  const existingUser = users.get(name);
+  const existingUser = users.get(name)
 
   if (existingUser) {
     if (existingUser.password !== password) {
-      return createErrorResponse('Invalid password');
+      return createErrorResponse('Invalid password')
     }
 
-    bindUserToSocket(socket, existingUser);
-    return mapUserToResponse(existingUser);
+    bindUserToSocket(socket, existingUser)
+    return mapUserToResponse(existingUser)
   }
 
-  const newUser = registerUser(name, password);
-  bindUserToSocket(socket, newUser);
-  return mapUserToResponse(newUser);
-};
+  const newUser = registerUser(name, password)
+  bindUserToSocket(socket, newUser)
+  return mapUserToResponse(newUser)
+}
 
 export const logout = (socket: WebSocket): void => {
-  const user = userBySocket.get(socket);
+  const user = userBySocket.get(socket)
 
   if (user) {
-    onlineUsers.delete(user.name);
-    userBySocket.delete(socket);
+    onlineUsers.delete(user.name)
+    userBySocket.delete(socket)
   }
-};
+}
 
 const bindUserToSocket = (socket: WebSocket, user: RegisteredUser): void => {
-  userBySocket.set(socket, user);
-  onlineUsers.add(user.name);
-};
+  userBySocket.set(socket, { name: user.name, index: user.index })
+  onlineUsers.add(user.name)
+}
 
 const registerUser = (name: string, password: string): RegisteredUser => {
   const user: RegisteredUser = {
     name,
     password,
     index: crypto.randomUUID()
-  };
+  }
 
-  users.set(name, user);
-  return user;
-};
+  users.set(name, user)
+  return user
+}
 
 const mapUserToResponse = (user: RegisteredUser): UserResponse => ({
   name: user.name,
   index: user.index,
   error: false,
   errorMessage: ''
-});
+})
 
 const createErrorResponse = (errorMessage: string): UserResponse => ({
   name: '',
   index: '',
   error: true,
   errorMessage
-});
+})
