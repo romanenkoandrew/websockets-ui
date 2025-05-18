@@ -4,6 +4,7 @@ import { loginByCredentials } from '../../db/users';
 import { mapToResponse } from '../utils';
 import { getWinnersHandler } from './winners';
 import { getRoomsHandler, createRoomHandler, addUserToRoomHandler,} from './rooms';
+import { addShipsHandler } from './games';
 
 export const handleMessage = (ws: WebSocket, msg: IncomingMessage): MessageResponse[] => {
     const responses: MessageResponse[] = []
@@ -47,6 +48,16 @@ export const handleMessage = (ws: WebSocket, msg: IncomingMessage): MessageRespo
 
                 return responses
             }
+            case 'add_ships': {
+                const result = addShipsHandler(msg.data)
+              
+                if (result.error) {
+                  return [mapToResponse('error', JSON.stringify(result))]
+                }
+                
+                return [mapToResponse('add_ships', JSON.stringify({ success: true }))]
+              }
+              
             default:
                 return [{ type: 'unknown', data: 'Unknown message type', id: 0 }]
         }

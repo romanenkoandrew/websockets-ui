@@ -1,8 +1,20 @@
+import { Result } from "../ws/types";
 import { User } from "./users"
 import crypto from 'node:crypto'
 
+type Position = { x: number; y: number }
+
+export type Ship = {
+  position: Position
+  direction: boolean
+  type: 'huge' | 'large' | 'medium' | 'small'
+  length: number
+}
+
 type Player = {
     idPlayer: string
+    ships?: Ship[]
+    ready?: boolean
 }
 
 type Game = {
@@ -40,4 +52,23 @@ export const getGameById = (gameId: string) => {
 
 export const playerIdResolver = (playerId: string) => {
     return playerIdDictionary.get(playerId)
-} 
+}
+
+export const savePlayerShips = (gameId: string, playerId: string, ships: Ship[]): Result => {
+    const game = getGameById(gameId)
+    if (!game) return { error: true, errorMessage: 'Game not found' }
+  
+    const player = game.players.find(p => p.idPlayer === playerId)
+    if (!player) return { error: true, errorMessage: 'Player not found' }
+    
+    player.ships = ships
+    player.ready = true
+  
+    return { error: false, errorMessage: '' }
+}
+
+export const isGameReady = (gameId: string): boolean => {
+    const game = getGameById(gameId)
+    if (!game) return false
+    return game.players.every(p => p.ready)
+}
