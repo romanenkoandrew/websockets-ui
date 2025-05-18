@@ -66,6 +66,15 @@ export const handleMessage = (ws: WebSocket, msg: IncomingMessage): MessageRespo
                 
                 return []
             }
+            case 'randomAttack': {
+                const result = attackHandler(msg.data, true)
+              
+                if (result.error) {
+                  return [mapToResponse('error', JSON.stringify(result))]
+                }
+                
+                return []
+            }
             default:
                 return [{ type: 'unknown', data: 'Unknown message type', id: 0 }]
         }

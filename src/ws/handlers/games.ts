@@ -1,8 +1,10 @@
 import { createGame, getGameById, isGameReady, processAttack, savePlayerShips } from "../../db/games"
 import { getRoomUsers, isRoomReadyToStart, removeRoom, Room } from "../../db/rooms"
 import { broadcastToGamePlayers, sendToPlayers } from "../broadcast"
-import { AddShipsData, AttackData, MessageResponse, Result } from "../types"
-import { mapToResponse, sucess } from "../utils"
+import { AddShipsData, AttackData, Position, Result } from "../types"
+import { getRandomCoords, mapToResponse, sucess } from "../utils"
+
+const mapSize = {x: 10, y: 10}
 
 export const createGameHandler = (room: Room) => {
     if (!isRoomReadyToStart(room.roomId)) return
@@ -56,7 +58,8 @@ export const addShipsHandler = (msgData: string): Result => {
 }
 
 export const attackHandler = (
-    msgData: string
+    msgData: string,
+    withoutCoords: boolean = false
   ): Result => {
     let data: AttackData
     try {
@@ -65,7 +68,20 @@ export const attackHandler = (
       return { error: true, errorMessage: 'Invalid JSON' }
     }
 
-    const { gameId, x, y, indexPlayer } = data
+    let x: Position['x']
+    let y: Position['y']
+
+    const { gameId, indexPlayer } = data
+
+    if (withoutCoords) {
+        const randomCoords = getRandomCoords(mapSize.x, mapSize.y)
+        x = randomCoords.x
+        y = randomCoords.y
+    } else {
+        x = data.x
+        y = data.y
+    }
+
     const result = processAttack({gameId, indexPlayer, x, y})
   
     if (!result) {
@@ -87,4 +103,3 @@ export const attackHandler = (
   
     return sucess
 }
-  
