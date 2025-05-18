@@ -27,6 +27,7 @@ const startGame = (gameId: string) => {
     const game = getGameById(gameId)
     if (game) {
         sendToPlayers(game.idGame, game.players, 'start_game', player => ({ ships: player.ships }))
+        sendToPlayers(game.idGame, game.players, 'turn', undefined, { currentPlayer: game.currentPlayer })
     }
 }
 

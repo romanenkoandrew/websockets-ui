@@ -11,7 +11,7 @@ export type Ship = {
   length: number
 }
 
-type Player = {
+export type Player = {
     idPlayer: string
     ships?: Ship[]
     ready?: boolean
@@ -20,6 +20,7 @@ type Player = {
 type Game = {
     idGame: string
     players: [Player, Player]
+    currentPlayer: string
 }
 
 const games = new Map<string, Game>()
@@ -32,13 +33,16 @@ export const createGame = (users: User[]) => {
 
     playerIdDictionary.set(firstParticipantId, users[0].index)
     playerIdDictionary.set(secondParticipantId, users[1].index)
+
+    const currentPlayer = Math.random() < 0.5 ? firstParticipantId : secondParticipantId
     
     const newGame: Game = {
         idGame,
         players: [ 
             {idPlayer: firstParticipantId},
             {idPlayer: secondParticipantId}
-         ]
+        ],
+        currentPlayer
     }
 
     games.set(idGame, newGame)
@@ -71,4 +75,8 @@ export const isGameReady = (gameId: string): boolean => {
     const game = getGameById(gameId)
     if (!game) return false
     return game.players.every(p => p.ready)
+}
+
+export const makeTurn = () => {
+
 }

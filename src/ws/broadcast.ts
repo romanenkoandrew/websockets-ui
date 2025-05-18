@@ -1,4 +1,4 @@
-import { getGameById, playerIdResolver } from "../db/games"
+import { getGameById, Player, playerIdResolver } from "../db/games"
 import { getOnlineUsers, getSocketByUser } from "../db/users"
 import { WebSocket } from 'ws'
 import { mapToResponse } from "./utils"
@@ -22,12 +22,13 @@ export const sendToPlayers = (
     gameId: string,
     players: { idPlayer: string; [key: string]: any }[],
     type: Message,
-    extraDataFn: (player: any) => object = () => ({})
+    extraDataFn: (player: Player) => object = () => ({}),
+    additionalData?: Record<string, string>
   ) => {
     const messages = players.reduce((acc, player) => {
       acc[player.idPlayer] = mapToResponse(
         type,
-        JSON.stringify({ idGame: gameId, idPlayer: player.idPlayer, ...extraDataFn(player) })
+        JSON.stringify({ idGame: gameId, idPlayer: player.idPlayer, ...extraDataFn(player), ...additionalData })
       )
       return acc
     }, {} as Record<string, any>)
