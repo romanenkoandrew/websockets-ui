@@ -2,15 +2,15 @@ import { WebSocket } from 'ws'
 import { getRooms, createRoom, addUserToRoom, getRoomById, Room } from "../../db/rooms"
 import { mapToResponse } from "../utils"
 import { getUserBySocket } from '../../db/users'
-import { Error } from '../types'
+import { Result } from '../types'
 
-const sucess: Error = { error: false, errorMessage: '' }
+const sucess: Result = { error: false, errorMessage: '' }
 
 export const getRoomsHandler = () => {
     return mapToResponse('update_room', JSON.stringify(getRooms()))
 }
 
-export const createRoomHandler = (socket: WebSocket): Error => {
+export const createRoomHandler = (socket: WebSocket): Result => {
     const user = getUserBySocket(socket)
 
     if (!user) {
@@ -25,7 +25,7 @@ export const createRoomHandler = (socket: WebSocket): Error => {
     return sucess
 }
 
-export const addUserToRoomHandler = (socket: WebSocket, roomId: string): Error => {
+export const addUserToRoomHandler = (socket: WebSocket, roomId: string): Result => {
     const room = getRoomById(roomId)
 
     if (!room) {

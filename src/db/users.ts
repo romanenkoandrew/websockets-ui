@@ -1,6 +1,6 @@
 import { WebSocket } from 'ws'
 import crypto from 'node:crypto'
-import { Error } from '../ws/types'
+import { Result } from '../ws/types'
 
 type UserCredentials = {
   name: string
@@ -13,7 +13,7 @@ type RegisteredUser = UserCredentials & {
 
 export type User = Omit<RegisteredUser, 'password'>
 
-type UserResponse = User & Error
+type UserResponse = User & Result
 
 const users = new Map<string, RegisteredUser>()
 const userBySocket = new Map<WebSocket, User>()

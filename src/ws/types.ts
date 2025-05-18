@@ -12,7 +12,7 @@ export type MessageResponse = {
   id: number
 }
 
-export type Error = {
+export type Result = {
   error: boolean
   errorMessage: string
 }
