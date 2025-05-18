@@ -1,10 +1,6 @@
 import { WebSocket } from 'ws'
 import crypto from 'node:crypto'
-
-type UserError = {
-  error: boolean
-  errorMessage: string
-}
+import { Error } from '../ws/types'
 
 type UserCredentials = {
   name: string
@@ -15,9 +11,9 @@ type RegisteredUser = UserCredentials & {
   index: string
 }
 
-type User = Omit<RegisteredUser, 'password'>
+export type User = Omit<RegisteredUser, 'password'>
 
-type UserResponse = User & UserError
+type UserResponse = User & Error
 
 const users = new Map<string, RegisteredUser>()
 const userBySocket = new Map<WebSocket, User>()
@@ -55,6 +51,10 @@ export const logout = (socket: WebSocket): void => {
     onlineUsers.delete(user.name)
     userBySocket.delete(socket)
   }
+}
+
+export const getUserBySocket = (socket: WebSocket) => {
+  return userBySocket.get(socket)
 }
 
 const bindUserToSocket = (socket: WebSocket, user: RegisteredUser): void => {

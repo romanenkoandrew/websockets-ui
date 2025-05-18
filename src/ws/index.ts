@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws'
-import { IncomingMessage } from './types';
-import { handleMessage } from './handlers';
-import { logout } from '../db/users';
+import { IncomingMessage } from './types'
+import { handleMessage } from './handlers'
+import { logout } from '../db/users'
 
 
 export const createWSS = (port: number) => {

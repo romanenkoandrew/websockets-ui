@@ -1,8 +1,9 @@
-import { IncomingMessage, RegData, MessageResponse } from '../types';
+import { IncomingMessage, RegData, MessageResponse, AddToRoomData } from '../types';
 import { WebSocket } from 'ws';
 import { loginByCredentials } from '../../db/users';
 import { mapToResponse } from '../utils';
-import { getWinnersHandlers } from './winners';
+import { getWinnersHandler } from './winners';
+import { getRoomsHandler, createRoomHandler, addUserToRoomHandler,} from './rooms';
 
 export const handleMessage = (ws: WebSocket, msg: IncomingMessage): MessageResponse[] => {
     const responses: MessageResponse[] = []
@@ -16,7 +17,32 @@ export const handleMessage = (ws: WebSocket, msg: IncomingMessage): MessageRespo
                 responses.push(mapToResponse(msg.type, JSON.stringify(loginResult)))
 
                 if (!loginResult.error) {
-                    responses.push(getWinnersHandlers())
+                    responses.push(getRoomsHandler())
+                    responses.push(getWinnersHandler())
+                }
+                
+                return responses
+            }
+            case 'create_room': {
+                const result = createRoomHandler(ws)
+                
+                if (result.error) {
+                    responses.push(mapToResponse('error', JSON.stringify(result)))
+                } else {
+                    responses.push(getRoomsHandler())
+                }
+
+                return responses
+            }
+            case 'add_user_to_room': {
+                const data: AddToRoomData = JSON.parse(msg.data)
+                const { indexRoom } = data
+                const result = addUserToRoomHandler(ws, indexRoom)
+                
+                if (result.error) {
+                    responses.push(mapToResponse('error', JSON.stringify(result)))
+                } else {
+                    responses.push(getRoomsHandler())
                 }
                 
                 return responses
