@@ -1,5 +1,5 @@
 type RoomMessages = 'update_room' | 'create_room' | 'add_user_to_room'
-type GameMessages = 'create_game' | 'start_game' | 'add_ships' | 'turn' | 'attack' | 'randomAttack'
+type GameMessages = 'create_game' | 'start_game' | 'add_ships' | 'turn' | 'attack' | 'randomAttack' | 'finish'
 export type Message = 'reg' | 'update_winners' | 'unknown' | 'error' | RoomMessages | GameMessages
 
 export type IncomingMessage = { type: Message; data: string, id: number }
@@ -41,6 +41,7 @@ export type AttackResult = {
   status: AttackStatus
   currentPlayer: string
   players: [Player, Player]
+  winPlayer?: string
 }
 
 export type RegData = { name: string; password: string }

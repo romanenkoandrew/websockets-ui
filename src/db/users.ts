@@ -56,6 +56,13 @@ export const getSocketByUser = (userId?: User['index']) => {
   return userConnectionsById.get(userId)
 }
 
+export const getUserById = (userId: string) => {
+  const user = users.get(userId)
+  
+  if (!user) return
+
+  return { name: user.name, index: user.index }
+} 
 
 export const getOnlineUsers = () => ({
   users: () => [...userConnections.values()],
@@ -75,7 +82,7 @@ const registerUser = (name: string, password: string): RegisteredUser => {
     index: crypto.randomUUID()
   }
 
-  users.set(name, user)
+  users.set(user.index, user)
   return user
 }
 

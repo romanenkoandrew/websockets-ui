@@ -1,15 +1,22 @@
+import { getUserById } from "./users"
+
 export type Winner = { name: string,  wins: number }
 export type Winners = Winner[]
  
 
 const winners = new Map<string, number>()
 
-export const addWinner = (name: string) => {
-    const winnerExists = winners.get(name)
+export const addWinner = (userId: string) => {
+    const user = getUserById(userId)
+    
+    if (!user) return
+
+    const winnerExists = winners.get(user.name)
+
     if (winnerExists) {
-        winners.set(name, winnerExists + 1)
+        winners.set(user.name, winnerExists + 1)
     } else {
-        winners.set(name, 1)
+        winners.set(user.name, 1)
     }
 }
 

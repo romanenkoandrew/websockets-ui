@@ -1,8 +1,9 @@
-import { createGame, getGameById, isGameReady, processAttack, savePlayerShips } from "../../db/games"
+import { createGame, getGameById, isGameReady, playerIdResolver, processAttack, removeGameById, savePlayerShips } from "../../db/games"
 import { getRoomUsers, isRoomReadyToStart, removeRoom, Room } from "../../db/rooms"
 import { broadcastToGamePlayers, sendToPlayers } from "../broadcast"
 import { AddShipsData, AttackData, Position, Result } from "../types"
 import { getRandomCoords, mapToResponse, sucess } from "../utils"
+import { addWinnerHandler } from "./winners"
 
 const mapSize = {x: 10, y: 10}
 
@@ -36,6 +37,21 @@ const startGame = (gameId: string) => {
     if (game) {
         sendToPlayers(game.idGame, game.players, 'start_game', player => ({ ships: player.ships }))
         sendCurrentPlayer(gameId)
+    }
+}
+
+const endGame = (gameId: string, winner: string) => {
+    const game = getGameById(gameId)
+    
+    if (game) {
+        const message = mapToResponse('finish', JSON.stringify({ winPlayer: winner }))
+
+        broadcastToGamePlayers(gameId, {
+            [game.players[0].idPlayer]: message,
+            [game.players[1].idPlayer]: message,
+          })
+        
+        removeGameById(gameId)
     }
 }
 
@@ -98,6 +114,18 @@ export const attackHandler = (
       [result.players[0].idPlayer]: attackMessage,
       [result.players[1].idPlayer]: attackMessage,
     })
+
+    if (result.winPlayer) {
+        const winnerUserId = playerIdResolver(result.winPlayer)
+        
+        endGame(gameId, result.winPlayer)
+
+        if (winnerUserId) {
+            addWinnerHandler(winnerUserId)
+        }
+
+        return sucess
+    }
 
     sendCurrentPlayer(gameId)
   

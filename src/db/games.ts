@@ -1,3 +1,4 @@
+import { finished } from "node:stream";
 import { AttackData, AttackResult, Game, Position, Result, Ship } from "../ws/types";
 import { User } from "./users"
 import crypto from 'node:crypto'
@@ -33,6 +34,11 @@ export const getGameById = (gameId: string) => {
     return games.get(gameId)
 }
 
+export const removeGameById = (gameId: string) => {
+    return games.delete(gameId)
+}
+
+
 export const playerIdResolver = (playerId: string) => {
     return playerIdDictionary.get(playerId)
 }
@@ -66,6 +72,7 @@ export const processAttack = (data: AttackData): AttackResult | null => {
       return null
     }
   
+    let winPlayer
     const attacker = game.players.find(p => p.idPlayer === indexPlayer)
     const opponent = game.players.find(p => p.idPlayer !== indexPlayer)
   
@@ -78,13 +85,16 @@ export const processAttack = (data: AttackData): AttackResult | null => {
   
     if (status === 'miss') {
       game.currentPlayer = opponent.idPlayer
+    } else if (shouldEndGame(targetShips)) {
+        winPlayer = attacker.idPlayer
     }
   
     return {
         position: { x, y },
         currentPlayer: attacker.idPlayer,
         status,
-        players: game.players
+        players: game.players,
+        winPlayer
     }
 }
 
@@ -114,6 +124,17 @@ export const handleAttack = (ships: Ship[], position: Position): 'miss' | 'shot'
 
   return 'miss'
 }
+
+export const shouldEndGame = (ships: Ship[]): boolean => {
+    return ships.every(ship => {
+      const occupied = getOccupiedPositions(ship)
+  
+      return occupied.every(pos =>
+        ship.hits?.some(hit => hit.x === pos.x && hit.y === pos.y)
+      )
+    })
+  }
+  
 
 const getOccupiedPositions = (ship: Ship): Position[] => {
     const positions: Position[] = []
