@@ -4,8 +4,8 @@
     "description": "Template for the WebSocket remote control task",
     "main": "index.js",
     "scripts": {
-        "start": "node ./index.js",
-        "start:dev": "ts-node-dev --respawn --transpile-only ./index.ts",
+        "start": "tsc && node dist/index.js",
+        "start:dev": "ts-node-dev --respawn --transpile-only src/index.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Andrei Auchynnikau",
