@@ -1,8 +1,8 @@
-import { getGameById, Player, playerIdResolver } from "../db/games"
+import { getGameById, playerIdResolver } from "../db/games"
 import { getOnlineUsers, getSocketByUser } from "../db/users"
 import { WebSocket } from 'ws'
 import { mapToResponse } from "./utils"
-import { Message } from "./types"
+import { Message, Player } from "./types"
 
 export const broadcastToAllUsers = (message: any, excludeSocket?: WebSocket) => {
     const data = typeof message === 'string' ? message : JSON.stringify(message)
@@ -23,12 +23,11 @@ export const sendToPlayers = (
     players: { idPlayer: string; [key: string]: any }[],
     type: Message,
     extraDataFn: (player: Player) => object = () => ({}),
-    additionalData?: Record<string, string>
   ) => {
     const messages = players.reduce((acc, player) => {
       acc[player.idPlayer] = mapToResponse(
         type,
-        JSON.stringify({ idGame: gameId, idPlayer: player.idPlayer, ...extraDataFn(player), ...additionalData })
+        JSON.stringify({ idGame: gameId, idPlayer: player.idPlayer, ...extraDataFn(player) })
       )
       return acc
     }, {} as Record<string, any>)

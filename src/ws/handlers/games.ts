@@ -1,14 +1,8 @@
-import { createGame, getGameById, isGameReady, savePlayerShips, Ship } from "../../db/games"
+import { createGame, getGameById, isGameReady, processAttack, savePlayerShips } from "../../db/games"
 import { getRoomUsers, isRoomReadyToStart, removeRoom, Room } from "../../db/rooms"
 import { broadcastToGamePlayers, sendToPlayers } from "../broadcast"
-import { Result } from "../types"
-import { mapToResponse } from "../utils"
-
-type AddShipsData = {
-    gameId: string
-    indexPlayer: string
-    ships: Ship[]
-  }
+import { AddShipsData, AttackData, MessageResponse, Result } from "../types"
+import { mapToResponse, sucess } from "../utils"
 
 export const createGameHandler = (room: Room) => {
     if (!isRoomReadyToStart(room.roomId)) return
@@ -22,12 +16,24 @@ export const createGameHandler = (room: Room) => {
     removeRoom(room.roomId)
 }
 
+const sendCurrentPlayer = (gameId: string) => {
+    const game = getGameById(gameId)
+    
+    if (game) {
+        const message = mapToResponse('turn', JSON.stringify({ currentPlayer: game.currentPlayer }))
+
+        broadcastToGamePlayers(gameId, {
+            [game.players[0].idPlayer]: message,
+            [game.players[1].idPlayer]: message,
+          })
+    }
+}
 
 const startGame = (gameId: string) => {
     const game = getGameById(gameId)
     if (game) {
         sendToPlayers(game.idGame, game.players, 'start_game', player => ({ ships: player.ships }))
-        sendToPlayers(game.idGame, game.players, 'turn', undefined, { currentPlayer: game.currentPlayer })
+        sendCurrentPlayer(gameId)
     }
 }
 
@@ -47,4 +53,38 @@ export const addShipsHandler = (msgData: string): Result => {
     }
   
     return { error: false, errorMessage: '' }
-  }
+}
+
+export const attackHandler = (
+    msgData: string
+  ): Result => {
+    let data: AttackData
+    try {
+      data = JSON.parse(msgData)
+    } catch {
+      return { error: true, errorMessage: 'Invalid JSON' }
+    }
+
+    const { gameId, x, y, indexPlayer } = data
+    const result = processAttack({gameId, indexPlayer, x, y})
+  
+    if (!result) {
+      return { error: true, errorMessage: 'Invalid attack' }
+    }
+  
+    const attackMessage = mapToResponse('attack', JSON.stringify({
+      position: result.position,
+      currentPlayer: result.currentPlayer,
+      status: result.status
+    }))
+  
+    broadcastToGamePlayers(gameId, {
+      [result.players[0].idPlayer]: attackMessage,
+      [result.players[1].idPlayer]: attackMessage,
+    })
+
+    sendCurrentPlayer(gameId)
+  
+    return sucess
+}
+  

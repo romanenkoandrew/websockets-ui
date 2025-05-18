@@ -1,12 +1,10 @@
 import { WebSocket } from 'ws'
 import { getRooms, createRoom, addUserToRoom, getRoomById, Room } from "../../db/rooms"
-import { mapToResponse } from "../utils"
+import { mapToResponse, sucess } from "../utils"
 import { getUserBySocket, User } from '../../db/users'
 import { Result } from '../types'
 import { broadcastToAllUsers } from '../broadcast'
 import { createGameHandler } from './games'
-
-const sucess: Result = { error: false, errorMessage: '' }
 
 export const getRoomsHandler = () => {
     return mapToResponse('update_room', JSON.stringify(getRooms()))

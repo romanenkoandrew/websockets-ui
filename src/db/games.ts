@@ -1,27 +1,6 @@
-import { Result } from "../ws/types";
+import { AttackData, AttackResult, Game, Position, Result, Ship } from "../ws/types";
 import { User } from "./users"
 import crypto from 'node:crypto'
-
-type Position = { x: number; y: number }
-
-export type Ship = {
-  position: Position
-  direction: boolean
-  type: 'huge' | 'large' | 'medium' | 'small'
-  length: number
-}
-
-export type Player = {
-    idPlayer: string
-    ships?: Ship[]
-    ready?: boolean
-}
-
-type Game = {
-    idGame: string
-    players: [Player, Player]
-    currentPlayer: string
-}
 
 const games = new Map<string, Game>()
 const playerIdDictionary = new Map<string, string>()
@@ -77,6 +56,75 @@ export const isGameReady = (gameId: string): boolean => {
     return game.players.every(p => p.ready)
 }
 
-export const makeTurn = () => {
-
+export const processAttack = (data: AttackData): AttackResult | null => {
+    const { gameId, x, y, indexPlayer } = data
+    const game = getGameById(gameId)
+    if (!game) return null
+  
+    if (game.currentPlayer !== indexPlayer) {
+      console.warn('Not your turn')
+      return null
+    }
+  
+    const attacker = game.players.find(p => p.idPlayer === indexPlayer)
+    const opponent = game.players.find(p => p.idPlayer !== indexPlayer)
+  
+    if (!attacker || !opponent) return null
+  
+    const targetShips = opponent.ships
+    if (!targetShips) return null
+  
+    const status = handleAttack(targetShips, { x, y })
+  
+    if (status === 'miss') {
+      game.currentPlayer = opponent.idPlayer
+    }
+  
+    return {
+        position: { x, y },
+        currentPlayer: attacker.idPlayer,
+        status,
+        players: game.players
+    }
 }
+
+export const handleAttack = (ships: Ship[], position: Position): 'miss' | 'shot' | 'killed' => {
+  for (const ship of ships) {
+    const occupiedPositions = getOccupiedPositions(ship)
+
+    const hitIndex = occupiedPositions.findIndex(
+      (pos) => pos.x === position.x && pos.y === position.y
+    )
+
+    if (hitIndex !== -1) {
+      ship.hits = ship.hits || []
+      const alreadyHit = ship.hits.some(pos => pos.x === position.x && pos.y === position.y)
+
+      if (!alreadyHit) {
+        ship.hits.push(position)
+      }
+
+      const isKilled = occupiedPositions.every(pos =>
+        ship.hits.some(hit => hit.x === pos.x && hit.y === pos.y)
+      )
+
+      return isKilled ? 'killed' : 'shot'
+    }
+  }
+
+  return 'miss'
+}
+
+const getOccupiedPositions = (ship: Ship): Position[] => {
+    const positions: Position[] = []
+  
+    for (let i = 0; i < ship.length; i++) {
+      positions.push({
+        x: ship.position.x + (ship.direction ? 0 : i),
+        y: ship.position.y + (ship.direction ? i : 0)
+      })
+    }
+  
+    return positions
+}
+  
