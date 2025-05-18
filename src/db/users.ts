@@ -16,50 +16,45 @@ export type User = Omit<RegisteredUser, 'password'>
 type UserResponse = User & Result
 
 const users = new Map<string, RegisteredUser>()
-const userBySocket = new Map<WebSocket, User>()
-const onlineUsers = new Set<string>()
+const onlineUserBySocket = new Map<WebSocket, User>()
 
 export const loginByCredentials = (
   socket: WebSocket,
   name: string,
   password: string
 ): UserResponse => {
-  if (onlineUsers.has(name)) {
+  if (getOnlineUsers().some(user => user.name === name))
     return createErrorResponse('User already in use')
-  }
 
-  const existingUser = users.get(name)
+  const user = users.get(name)
 
-  if (existingUser) {
-    if (existingUser.password !== password) {
-      return createErrorResponse('Invalid password')
-    }
+  if (user && user.password !== password)
+    return createErrorResponse('Invalid password')
 
-    bindUserToSocket(socket, existingUser)
-    return mapUserToResponse(existingUser)
-  }
+  const finalUser = user ?? registerUser(name, password)
+  bindUserToSocket(socket, finalUser)
 
-  const newUser = registerUser(name, password)
-  bindUserToSocket(socket, newUser)
-  return mapUserToResponse(newUser)
+  return mapUserToResponse(finalUser)
 }
 
 export const logout = (socket: WebSocket): void => {
-  const user = userBySocket.get(socket)
+  const user = onlineUserBySocket.get(socket)
 
   if (user) {
-    onlineUsers.delete(user.name)
-    userBySocket.delete(socket)
+    onlineUserBySocket.delete(socket)
   }
 }
 
 export const getUserBySocket = (socket: WebSocket) => {
-  return userBySocket.get(socket)
+  return onlineUserBySocket.get(socket)
+}
+
+export const getOnlineUsers = () => {
+  return [...onlineUserBySocket.values()]
 }
 
 const bindUserToSocket = (socket: WebSocket, user: RegisteredUser): void => {
-  userBySocket.set(socket, { name: user.name, index: user.index })
-  onlineUsers.add(user.name)
+  onlineUserBySocket.set(socket, { name: user.name, index: user.index })
 }
 
 const registerUser = (name: string, password: string): RegisteredUser => {
