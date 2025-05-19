@@ -7,6 +7,8 @@ import { Message, Player } from "./types"
 export const broadcastToAllUsers = (message: any, excludeSocket?: WebSocket) => {
     const data = typeof message === 'string' ? message : JSON.stringify(message)
   
+    console.log('Send message to all online users:', message)
+
     for (const [ws] of getOnlineUsers().all()) {
       if (ws !== excludeSocket && ws.readyState === ws.OPEN) {
         ws.send(data)
@@ -42,7 +44,7 @@ export const broadcastToGamePlayers = (
     const game = getGameById(gameId)
     if (!game) return
 
-    game.players.forEach(player => {
+    game.players.forEach((player, index) => {
       const userId = playerIdResolver(player.idPlayer)
       const ws = getSocketByUser(userId)
   
@@ -51,6 +53,7 @@ export const broadcastToGamePlayers = (
         const payload = typeof message === 'string' ? message : JSON.stringify(message)
 
         if (payload) {
+            console.log(`Send message to game player №${index + 1}:`, message)
             ws.send(payload)
         }
       }

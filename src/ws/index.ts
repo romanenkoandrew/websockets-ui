@@ -7,15 +7,17 @@ import { logout } from '../db/users'
 export const createWSS = (port: number) => {
     const wss = new WebSocketServer({ port })
 
+    wss.on('listening', () => console.log(`WebSocketServer listening port ${port}...`))
+
     wss.on('connection', (ws) => {
         console.log('New WebSocket connection')
 
         ws.on('message', (message) => {
             try {
                 const msg: IncomingMessage = JSON.parse(message.toString())
-                console.log('msg:', msg)
+                console.log('Incoming message:', msg)
                 const responses = handleMessage(ws, msg)
-                console.log('response:', responses)
+                console.log('Response:', responses)
 
                 responses.forEach(response => ws.send(JSON.stringify(response)))
             } catch (err) {
