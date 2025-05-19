@@ -29,3 +29,18 @@ Command | Description
 `npm run start` | App served @ `http://localhost:8181` without nodemon
 
 **Note**: replace `npm` with `yarn` in `package.json` if you use yarn.
+
+### Login Rules
+- Each user can log in only once at a time.
+
+- If a second login attempt is made with the same credentials, an error message will be returned.
+
+### Room Creation & Participation
+- A user can create a room and is automatically added to that room.
+
+- A user can be a member of only one room at a time.
+
+- If a user creates a room, they cannot be invited to that room or to any other room.
+
+### Real-Time Synchronization
+- Room list and winners table are automatically synchronized and broadcast to all online users in real-time.
