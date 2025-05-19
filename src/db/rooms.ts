@@ -11,9 +11,7 @@ export type Room = {
 const rooms = new Map<string, Room>()
 
 export const createRoom = (userId: string) => {
-    const alreadyInRoom = getRooms().find(room => room.roomUsers.some(it => it.index === userId))
-
-    if (alreadyInRoom) {
+    if (userIsAlreadyInRoom(userId)) {
         return null
     }
 
@@ -36,19 +34,14 @@ export const addUserToRoom = (roomId: string, user: User): boolean => {
 
     if (!room) return false
 
-    const alreadyInRoom = getRooms().find(room => room.roomUsers.some(it => it.index === user.index))
-    if (alreadyInRoom) return false
+    if (userIsAlreadyInRoom(user.index)) return false
 
     room.roomUsers.push(user)
     return true
 }
 
-export const getRoomParticipants = (roomId: string) => {
-    const room = getRoomById(roomId)
-
-    if (!room) return false
-
-    return room.roomUsers
+export const userIsAlreadyInRoom = (userId: string) => {
+    return getRooms().find(room => room.roomUsers.some(it => it.index === userId))
 }
 
 export const removeRoom = (roomId: string) => {

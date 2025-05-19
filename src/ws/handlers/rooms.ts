@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws'
-import { getRooms, createRoom, addUserToRoom, getRoomById, Room } from "../../db/rooms"
+import { getRooms, createRoom, addUserToRoom, getRoomById, Room, userIsAlreadyInRoom, removeRoom } from "../../db/rooms"
 import { mapToResponse, sucess } from "../utils"
 import { getUserBySocket, User } from '../../db/users'
 import { Result } from '../types'
@@ -36,6 +36,20 @@ export const addUserToRoomHandler = (socket: WebSocket, roomId: string): Result 
 
     broadcastToAllUsers(getRoomsHandler(), socket)
     return sucess
+}
+
+export const removeRoomHandler = (socket: WebSocket) => {
+  const user = getUserBySocket(socket)
+
+  if (user) {
+    const room = userIsAlreadyInRoom(user.index)
+    console.log('room', room);
+    
+    if (room) {
+      removeRoom(room.roomId)
+      broadcastToAllUsers(getRoomsHandler(), socket)
+    }
+  }
 }
 
 type AddUserValidationResult =

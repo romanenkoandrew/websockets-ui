@@ -39,7 +39,7 @@ export const loginByCredentials = (
 }
 
 export const logout = (socket: WebSocket): void => {
-  const user = userConnections.get(socket)
+  const user = getUserBySocket(socket)
 
   if (user) {
     userConnectionsById.delete(user.index)

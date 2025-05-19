@@ -2,6 +2,7 @@ import { WebSocketServer } from 'ws'
 import { IncomingMessage } from './types'
 import { handleMessage } from './handlers'
 import { logout } from '../db/users'
+import { removeRoomHandler } from './handlers/rooms'
 
 
 export const createWSS = (port: number) => {
@@ -28,6 +29,7 @@ export const createWSS = (port: number) => {
 
         ws.on('close', () => {
             console.log('WebSocket connection closed')
+            removeRoomHandler(ws)
             logout(ws)
         })
 
