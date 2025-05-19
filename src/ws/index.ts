@@ -37,4 +37,11 @@ export const createWSS = (port: number) => {
             ws.send(JSON.stringify({ type: 'unknown', data: JSON.stringify('Websocket error'), id: 0 }));
         })
     })
+    
+    process.on('SIGINT', () => {
+        wss.close(() => {
+            console.log('WebSocketServer closed')
+            process.exit(0)
+        })
+    })
 }
